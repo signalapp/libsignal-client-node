@@ -9,8 +9,7 @@
     "clean": "rimraf dist build",
     "test": "electron-mocha --recursive dist/test",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "format": "p() { prettier ${@:- --write} package.json '*.js' '**/*.{css,js,json,md,scss,ts,tsx}'; }; p",
-    "prepare": "yarn tsc"
+    "format": "p() { prettier ${@:- --write} package.json '*.js' '**/*.{css,js,json,md,scss,ts,tsx}'; }; p"
   },
   "dependencies": {
     "bindings": "^1.5.0"
