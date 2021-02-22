@@ -1,13 +1,14 @@
 {
   "name": "signal-client",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "AGPL-3.0-only",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "tsc": "tsc && cp *.d.ts dist",
+    "build": "node-gyp build",
+    "tsc": "tsc",
     "clean": "rimraf dist build",
-    "test": "electron-mocha --recursive dist/test",
+    "test": "electron-mocha --recursive dist/test --require source-map-support/register",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "p() { prettier ${@:- --write} package.json '*.js' '**/*.{css,js,json,md,scss,ts,tsx}'; }; p"
   },
@@ -22,7 +23,7 @@
     "@typescript-eslint/eslint-plugin": "^4.6.0",
     "@typescript-eslint/parser": "^4.6.0",
     "chai": "4.2.0",
-    "electron": "8.2.5",
+    "electron": "11.2.3",
     "electron-mocha": "8.1.1",
     "eslint": "^7.12.1",
     "eslint-config-prettier": "6.15.0",
@@ -34,6 +35,7 @@
     "node-gyp": "^7.1.2",
     "prettier": "1.19.1",
     "rimraf": "3.0.1",
+    "source-map-support": "^0.5.19",
     "typescript": "3.7.4"
   }
 }
