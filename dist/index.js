@@ -346,6 +346,9 @@ class SessionRecord {
     remoteRegistrationId() {
         return SC.SessionRecord_GetRemoteRegistrationId(this);
     }
+    hasCurrentState() {
+        return SC.SessionRecord_HasCurrentState(this);
+    }
 }
 exports.SessionRecord = SessionRecord;
 class SenderKeyName {
@@ -658,13 +661,13 @@ class SenderKeyStore {
 exports.SenderKeyStore = SenderKeyStore;
 function groupEncrypt(name, store, message) {
     return __awaiter(this, void 0, void 0, function* () {
-        return SC.GroupCipher_Encrypt(name, store, message);
+        return SC.GroupCipher_Encrypt(name, message, store);
     });
 }
 exports.groupEncrypt = groupEncrypt;
 function groupDecrypt(name, store, message) {
     return __awaiter(this, void 0, void 0, function* () {
-        return SC.GroupCipher_Decrypt(name, store, message);
+        return SC.GroupCipher_Decrypt(name, message, store);
     });
 }
 exports.groupDecrypt = groupDecrypt;
@@ -723,12 +726,15 @@ function signalDecryptPreKey(message, address, sessionStore, identityStore, prek
 }
 exports.signalDecryptPreKey = signalDecryptPreKey;
 function sealedSenderEncryptMessage(message, address, senderCert, sessionStore, identityStore) {
-    return SC.SealedSender_EncryptMessage(message, address, senderCert, sessionStore, identityStore);
+    return SC.SealedSender_EncryptMessage(address, senderCert, message, sessionStore, identityStore);
 }
 exports.sealedSenderEncryptMessage = sealedSenderEncryptMessage;
 function sealedSenderDecryptMessage(message, trustRoot, timestamp, localE164, localUuid, localDeviceId, sessionStore, identityStore, prekeyStore, signedPrekeyStore) {
     return __awaiter(this, void 0, void 0, function* () {
         const ssdr = yield SC.SealedSender_DecryptMessage(message, trustRoot, timestamp, localE164, localUuid, localDeviceId, sessionStore, identityStore, prekeyStore, signedPrekeyStore);
+        if (ssdr == null) {
+            return null;
+        }
         return SealedSenderDecryptionResult._fromNativeHandle(ssdr);
     });
 }

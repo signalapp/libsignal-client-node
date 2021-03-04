@@ -574,6 +574,10 @@ export class SessionRecord {
   remoteRegistrationId(): number {
     return SC.SessionRecord_GetRemoteRegistrationId(this);
   }
+
+  hasCurrentState(): boolean {
+    return SC.SessionRecord_HasCurrentState(this);
+  }
 }
 
 export class SenderKeyName {
@@ -1061,7 +1065,7 @@ export async function groupEncrypt(
   store: SenderKeyStore,
   message: Buffer
 ): Promise<Buffer> {
-  return SC.GroupCipher_Encrypt(name, store, message);
+  return SC.GroupCipher_Encrypt(name, message, store);
 }
 
 export async function groupDecrypt(
@@ -1069,7 +1073,7 @@ export async function groupDecrypt(
   store: SenderKeyStore,
   message: Buffer
 ): Promise<Buffer> {
-  return SC.GroupCipher_Decrypt(name, store, message);
+  return SC.GroupCipher_Decrypt(name, message, store);
 }
 
 export class SealedSenderDecryptionResult {
@@ -1194,9 +1198,9 @@ export function sealedSenderEncryptMessage(
   identityStore: IdentityKeyStore
 ): Promise<Buffer> {
   return SC.SealedSender_EncryptMessage(
-    message,
     address,
     senderCert,
+    message,
     sessionStore,
     identityStore
   );
@@ -1213,7 +1217,7 @@ export async function sealedSenderDecryptMessage(
   identityStore: IdentityKeyStore,
   prekeyStore: PreKeyStore,
   signedPrekeyStore: SignedPreKeyStore
-): Promise<SealedSenderDecryptionResult> {
+): Promise<SealedSenderDecryptionResult | null> {
   const ssdr = await SC.SealedSender_DecryptMessage(
     message,
     trustRoot,
@@ -1226,6 +1230,9 @@ export async function sealedSenderDecryptMessage(
     prekeyStore,
     signedPrekeyStore
   );
+  if (ssdr == null) {
+    return null;
+  }
   return SealedSenderDecryptionResult._fromNativeHandle(ssdr);
 }
 

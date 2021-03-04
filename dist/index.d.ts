@@ -148,6 +148,7 @@ export declare class SessionRecord {
     archiveCurrentState(): void;
     localRegistrationId(): number;
     remoteRegistrationId(): number;
+    hasCurrentState(): boolean;
 }
 export declare class SenderKeyName {
     readonly _nativeHandle: SignalClient.SenderKeyName;
@@ -289,5 +290,5 @@ export declare function signalEncrypt(message: Buffer, address: ProtocolAddress,
 export declare function signalDecrypt(message: SignalMessage, address: ProtocolAddress, sessionStore: SessionStore, identityStore: IdentityKeyStore): Promise<Buffer>;
 export declare function signalDecryptPreKey(message: PreKeySignalMessage, address: ProtocolAddress, sessionStore: SessionStore, identityStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore): Promise<Buffer>;
 export declare function sealedSenderEncryptMessage(message: Buffer, address: ProtocolAddress, senderCert: SenderCertificate, sessionStore: SessionStore, identityStore: IdentityKeyStore): Promise<Buffer>;
-export declare function sealedSenderDecryptMessage(message: Buffer, trustRoot: PublicKey, timestamp: number, localE164: string | null, localUuid: string, localDeviceId: number, sessionStore: SessionStore, identityStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore): Promise<SealedSenderDecryptionResult>;
+export declare function sealedSenderDecryptMessage(message: Buffer, trustRoot: PublicKey, timestamp: number, localE164: string | null, localUuid: string, localDeviceId: number, sessionStore: SessionStore, identityStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore): Promise<SealedSenderDecryptionResult | null>;
 export declare function sealedSenderDecryptToUsmc(message: Buffer, identityStore: IdentityKeyStore): Promise<UnidentifiedSenderMessageContent>;
