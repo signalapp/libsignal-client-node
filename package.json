@@ -1,19 +1,24 @@
 {
   "name": "signal-client",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "license": "AGPL-3.0-only",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**",
+    "build/Release/*.node"
+  ],
   "scripts": {
     "build": "node-gyp build",
-    "tsc": "tsc",
-    "clean": "rimraf dist build",
-    "test": "electron-mocha --recursive dist/test --require source-map-support/register",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "format": "p() { prettier ${@:- --write} package.json '*.js' '**/*.{css,js,json,md,scss,ts,tsx}'; }; p"
+    "tsc": "tsc -b node",
+    "clean": "rimraf node/dist build",
+    "test": "electron-mocha --recursive node/dist/test --require source-map-support/register",
+    "lint": "cd node && eslint . --ext .js,.jsx,.ts,.tsx",
+    "format": "p() { prettier ${@:- --write} package.json '*.js' 'node/**/*.{css,js,json,md,scss,ts,tsx}'; }; p"
   },
   "dependencies": {
-    "bindings": "^1.5.0"
+    "bindings": "^1.5.0",
+    "uuid": "^8.3.0"
   },
   "devDependencies": {
     "@types/bindings": "^1.3.0",
@@ -21,6 +26,7 @@
     "@types/chai-as-promised": "^7.1.3",
     "@types/mocha": "5.2.7",
     "@types/node": "13.1.8",
+    "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.6.0",
     "@typescript-eslint/parser": "^4.6.0",
     "chai": "4.2.0",

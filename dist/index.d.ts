@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import * as SignalClient from './libsignal_client';
-export declare const initLogger: typeof SignalClient.initLogger, LogLevel: typeof SignalClient.LogLevel;
+import * as Native from './Native';
+export declare const initLogger: typeof Native.initLogger, LogLevel: typeof Native.LogLevel;
 export declare const enum CiphertextMessageType {
     Whisper = 2,
     PreKey = 3,
@@ -11,6 +11,7 @@ export declare const enum Direction {
     Sending = 0,
     Receiving = 1
 }
+export declare type Uuid = string;
 export declare class HKDF {
     private readonly version;
     private constructor();
@@ -31,31 +32,31 @@ export declare class DisplayableFingerprint {
     toString(): string;
 }
 export declare class Fingerprint {
-    readonly _nativeHandle: SignalClient.Fingerprint;
+    readonly _nativeHandle: Native.Fingerprint;
     private constructor();
     static new(iterations: number, version: number, localIdentifier: Buffer, localKey: PublicKey, remoteIdentifier: Buffer, remoteKey: PublicKey): Fingerprint;
     displayableFingerprint(): DisplayableFingerprint;
     scannableFingerprint(): ScannableFingerprint;
 }
 export declare class Aes256GcmSiv {
-    readonly _nativeHandle: SignalClient.Aes256GcmSiv;
+    readonly _nativeHandle: Native.Aes256GcmSiv;
     private constructor();
     static new(key: Buffer): Aes256GcmSiv;
     encrypt(message: Buffer, nonce: Buffer, associated_data: Buffer): Buffer;
     decrypt(message: Buffer, nonce: Buffer, associated_data: Buffer): Buffer;
 }
 export declare class ProtocolAddress {
-    readonly _nativeHandle: SignalClient.ProtocolAddress;
+    readonly _nativeHandle: Native.ProtocolAddress;
     private constructor();
-    static _fromNativeHandle(handle: SignalClient.ProtocolAddress): ProtocolAddress;
+    static _fromNativeHandle(handle: Native.ProtocolAddress): ProtocolAddress;
     static new(name: string, deviceId: number): ProtocolAddress;
     name(): string;
     deviceId(): number;
 }
 export declare class PublicKey {
-    readonly _nativeHandle: SignalClient.PublicKey;
+    readonly _nativeHandle: Native.PublicKey;
     private constructor();
-    static _fromNativeHandle(handle: SignalClient.PublicKey): PublicKey;
+    static _fromNativeHandle(handle: Native.PublicKey): PublicKey;
     static deserialize(buf: Buffer): PublicKey;
     compare(other: PublicKey): number;
     serialize(): Buffer;
@@ -63,9 +64,9 @@ export declare class PublicKey {
     verify(msg: Buffer, sig: Buffer): boolean;
 }
 export declare class PrivateKey {
-    readonly _nativeHandle: SignalClient.PrivateKey;
+    readonly _nativeHandle: Native.PrivateKey;
     private constructor();
-    static _fromNativeHandle(handle: SignalClient.PrivateKey): PrivateKey;
+    static _fromNativeHandle(handle: Native.PrivateKey): PrivateKey;
     static generate(): PrivateKey;
     static deserialize(buf: Buffer): PrivateKey;
     serialize(): Buffer;
@@ -81,7 +82,7 @@ export declare class IdentityKeyPair {
     serialize(): Buffer;
 }
 export declare class PreKeyBundle {
-    readonly _nativeHandle: SignalClient.PreKeyBundle;
+    readonly _nativeHandle: Native.PreKeyBundle;
     private constructor();
     static new(registration_id: number, device_id: number, prekey_id: number | null, prekey: PublicKey | null, signed_prekey_id: number, signed_prekey: PublicKey, signed_prekey_signature: Buffer, identity_key: PublicKey): PreKeyBundle;
     deviceId(): number;
@@ -94,9 +95,9 @@ export declare class PreKeyBundle {
     signedPreKeySignature(): Buffer;
 }
 export declare class PreKeyRecord {
-    readonly _nativeHandle: SignalClient.PreKeyRecord;
+    readonly _nativeHandle: Native.PreKeyRecord;
     private constructor();
-    static _fromNativeHandle(nativeHandle: SignalClient.PreKeyRecord): PreKeyRecord;
+    static _fromNativeHandle(nativeHandle: Native.PreKeyRecord): PreKeyRecord;
     static new(id: number, pubKey: PublicKey, privKey: PrivateKey): PreKeyRecord;
     static deserialize(buffer: Buffer): PreKeyRecord;
     id(): number;
@@ -105,9 +106,9 @@ export declare class PreKeyRecord {
     serialize(): Buffer;
 }
 export declare class SignedPreKeyRecord {
-    readonly _nativeHandle: SignalClient.SignedPreKeyRecord;
+    readonly _nativeHandle: Native.SignedPreKeyRecord;
     private constructor();
-    static _fromNativeHandle(nativeHandle: SignalClient.SignedPreKeyRecord): SignedPreKeyRecord;
+    static _fromNativeHandle(nativeHandle: Native.SignedPreKeyRecord): SignedPreKeyRecord;
     static new(id: number, timestamp: number, pubKey: PublicKey, privKey: PrivateKey, signature: Buffer): SignedPreKeyRecord;
     static deserialize(buffer: Buffer): SignedPreKeyRecord;
     id(): number;
@@ -118,7 +119,7 @@ export declare class SignedPreKeyRecord {
     timestamp(): number;
 }
 export declare class SignalMessage {
-    readonly _nativeHandle: SignalClient.SignalMessage;
+    readonly _nativeHandle: Native.SignalMessage;
     private constructor();
     static new(messageVersion: number, macKey: Buffer, senderRatchetKey: PublicKey, counter: number, previousCounter: number, ciphertext: Buffer, senderIdentityKey: PublicKey, receiverIdentityKey: PublicKey): SignalMessage;
     static deserialize(buffer: Buffer): SignalMessage;
@@ -129,7 +130,7 @@ export declare class SignalMessage {
     verifyMac(senderIdentityKey: PublicKey, recevierIdentityKey: PublicKey, macKey: Buffer): boolean;
 }
 export declare class PreKeySignalMessage {
-    readonly _nativeHandle: SignalClient.PreKeySignalMessage;
+    readonly _nativeHandle: Native.PreKeySignalMessage;
     private constructor();
     static new(messageVersion: number, registrationId: number, preKeyId: number | null, signedPreKeyId: number, baseKey: PublicKey, identityKey: PublicKey, signalMessage: SignalMessage): PreKeySignalMessage;
     static deserialize(buffer: Buffer): PreKeySignalMessage;
@@ -140,9 +141,9 @@ export declare class PreKeySignalMessage {
     serialize(): Buffer;
 }
 export declare class SessionRecord {
-    readonly _nativeHandle: SignalClient.SessionRecord;
+    readonly _nativeHandle: Native.SessionRecord;
     private constructor();
-    static _fromNativeHandle(nativeHandle: SignalClient.SessionRecord): SessionRecord;
+    static _fromNativeHandle(nativeHandle: Native.SessionRecord): SessionRecord;
     static deserialize(buffer: Buffer): SessionRecord;
     serialize(): Buffer;
     archiveCurrentState(): void;
@@ -150,18 +151,9 @@ export declare class SessionRecord {
     remoteRegistrationId(): number;
     hasCurrentState(): boolean;
 }
-export declare class SenderKeyName {
-    readonly _nativeHandle: SignalClient.SenderKeyName;
-    private constructor();
-    static _fromNativeHandle(nativeHandle: SignalClient.SenderKeyName): SenderKeyName;
-    static new(groupId: string, senderName: string, senderDeviceId: number): SenderKeyName;
-    groupId(): string;
-    senderName(): string;
-    senderDeviceId(): number;
-}
 export declare class ServerCertificate {
-    readonly _nativeHandle: SignalClient.ServerCertificate;
-    static _fromNativeHandle(nativeHandle: SignalClient.ServerCertificate): ServerCertificate;
+    readonly _nativeHandle: Native.ServerCertificate;
+    static _fromNativeHandle(nativeHandle: Native.ServerCertificate): ServerCertificate;
     private constructor();
     static new(keyId: number, serverKey: PublicKey, trustRoot: PrivateKey): ServerCertificate;
     static deserialize(buffer: Buffer): ServerCertificate;
@@ -172,17 +164,17 @@ export declare class ServerCertificate {
     signature(): Buffer;
 }
 export declare class SenderKeyRecord {
-    readonly _nativeHandle: SignalClient.SenderKeyRecord;
-    static _fromNativeHandle(nativeHandle: SignalClient.SenderKeyRecord): SenderKeyRecord;
+    readonly _nativeHandle: Native.SenderKeyRecord;
+    static _fromNativeHandle(nativeHandle: Native.SenderKeyRecord): SenderKeyRecord;
     private constructor();
     static new(): SenderKeyRecord;
     static deserialize(buffer: Buffer): SenderKeyRecord;
     serialize(): Buffer;
 }
 export declare class SenderCertificate {
-    readonly _nativeHandle: SignalClient.SenderCertificate;
+    readonly _nativeHandle: Native.SenderCertificate;
     private constructor();
-    static _fromNativeHandle(nativeHandle: SignalClient.SenderCertificate): SenderCertificate;
+    static _fromNativeHandle(nativeHandle: Native.SenderCertificate): SenderCertificate;
     static new(senderUuid: string, senderE164: string | null, senderDeviceId: number, senderKey: PublicKey, expiration: number, signerCert: ServerCertificate, signerKey: PrivateKey): SenderCertificate;
     static deserialize(buffer: Buffer): SenderCertificate;
     serialize(): Buffer;
@@ -197,91 +189,93 @@ export declare class SenderCertificate {
     validate(trustRoot: PublicKey, time: number): boolean;
 }
 export declare class SenderKeyDistributionMessage {
-    readonly _nativeHandle: SignalClient.SenderKeyDistributionMessage;
+    readonly _nativeHandle: Native.SenderKeyDistributionMessage;
     private constructor();
-    static create(name: SenderKeyName, store: SenderKeyStore): Promise<SenderKeyDistributionMessage>;
-    static new(keyId: number, iteration: number, chainKey: Buffer, pk: PublicKey): SenderKeyDistributionMessage;
+    static create(sender: ProtocolAddress, distributionId: Uuid, store: SenderKeyStore): Promise<SenderKeyDistributionMessage>;
+    static new(distributionId: Uuid, chainId: number, iteration: number, chainKey: Buffer, pk: PublicKey): SenderKeyDistributionMessage;
     static deserialize(buffer: Buffer): SenderKeyDistributionMessage;
     serialize(): Buffer;
     chainKey(): Buffer;
     iteration(): number;
-    id(): number;
+    chainId(): number;
+    distributionId(): Uuid;
 }
-export declare function processSenderKeyDistributionMessage(name: SenderKeyName, message: SenderKeyDistributionMessage, store: SenderKeyStore): Promise<void>;
+export declare function processSenderKeyDistributionMessage(sender: ProtocolAddress, message: SenderKeyDistributionMessage, store: SenderKeyStore): Promise<void>;
 export declare class SenderKeyMessage {
-    readonly _nativeHandle: SignalClient.SenderKeyMessage;
+    readonly _nativeHandle: Native.SenderKeyMessage;
     private constructor();
-    static new(keyId: number, iteration: number, ciphertext: Buffer, pk: PrivateKey): SenderKeyMessage;
+    static new(distributionId: Uuid, chainId: number, iteration: number, ciphertext: Buffer, pk: PrivateKey): SenderKeyMessage;
     static deserialize(buffer: Buffer): SenderKeyMessage;
     serialize(): Buffer;
     ciphertext(): Buffer;
     iteration(): number;
-    keyId(): number;
+    chainId(): number;
+    distributionId(): Uuid;
     verifySignature(key: PublicKey): boolean;
 }
 export declare class UnidentifiedSenderMessageContent {
-    readonly _nativeHandle: SignalClient.UnidentifiedSenderMessageContent;
+    readonly _nativeHandle: Native.UnidentifiedSenderMessageContent;
     private constructor();
-    static _fromNativeHandle(nativeHandle: SignalClient.UnidentifiedSenderMessageContent): UnidentifiedSenderMessageContent;
+    static _fromNativeHandle(nativeHandle: Native.UnidentifiedSenderMessageContent): UnidentifiedSenderMessageContent;
     static deserialize(buffer: Buffer): UnidentifiedSenderMessageContent;
     serialize(): Buffer;
     contents(): Buffer;
     msgType(): number;
     senderCertificate(): SenderCertificate;
 }
-export declare abstract class SessionStore implements SignalClient.SessionStore {
-    _saveSession(name: SignalClient.ProtocolAddress, record: SignalClient.SessionRecord): Promise<void>;
-    _getSession(name: SignalClient.ProtocolAddress): Promise<SignalClient.SessionRecord | null>;
+export declare abstract class SessionStore implements Native.SessionStore {
+    _saveSession(name: Native.ProtocolAddress, record: Native.SessionRecord): Promise<void>;
+    _getSession(name: Native.ProtocolAddress): Promise<Native.SessionRecord | null>;
     abstract saveSession(name: ProtocolAddress, record: SessionRecord): Promise<void>;
     abstract getSession(name: ProtocolAddress): Promise<SessionRecord | null>;
 }
-export declare abstract class IdentityKeyStore implements SignalClient.IdentityKeyStore {
-    _getIdentityKey(): Promise<SignalClient.PrivateKey>;
+export declare abstract class IdentityKeyStore implements Native.IdentityKeyStore {
+    _getIdentityKey(): Promise<Native.PrivateKey>;
     _getLocalRegistrationId(): Promise<number>;
-    _saveIdentity(name: SignalClient.ProtocolAddress, key: SignalClient.PublicKey): Promise<boolean>;
-    _isTrustedIdentity(name: SignalClient.ProtocolAddress, key: SignalClient.PublicKey, sending: boolean): Promise<boolean>;
-    _getIdentity(name: SignalClient.ProtocolAddress): Promise<SignalClient.PublicKey | null>;
+    _saveIdentity(name: Native.ProtocolAddress, key: Native.PublicKey): Promise<boolean>;
+    _isTrustedIdentity(name: Native.ProtocolAddress, key: Native.PublicKey, sending: boolean): Promise<boolean>;
+    _getIdentity(name: Native.ProtocolAddress): Promise<Native.PublicKey | null>;
     abstract getIdentityKey(): Promise<PrivateKey>;
     abstract getLocalRegistrationId(): Promise<number>;
     abstract saveIdentity(name: ProtocolAddress, key: PublicKey): Promise<boolean>;
     abstract isTrustedIdentity(name: ProtocolAddress, key: PublicKey, direction: Direction): Promise<boolean>;
     abstract getIdentity(name: ProtocolAddress): Promise<PublicKey | null>;
 }
-export declare abstract class PreKeyStore implements SignalClient.PreKeyStore {
-    _savePreKey(id: number, record: SignalClient.PreKeyRecord): Promise<void>;
-    _getPreKey(id: number): Promise<SignalClient.PreKeyRecord>;
+export declare abstract class PreKeyStore implements Native.PreKeyStore {
+    _savePreKey(id: number, record: Native.PreKeyRecord): Promise<void>;
+    _getPreKey(id: number): Promise<Native.PreKeyRecord>;
     _removePreKey(id: number): Promise<void>;
     abstract savePreKey(id: number, record: PreKeyRecord): Promise<void>;
     abstract getPreKey(id: number): Promise<PreKeyRecord>;
     abstract removePreKey(id: number): Promise<void>;
 }
-export declare abstract class SignedPreKeyStore implements SignalClient.SignedPreKeyStore {
-    _saveSignedPreKey(id: number, record: SignalClient.SignedPreKeyRecord): Promise<void>;
-    _getSignedPreKey(id: number): Promise<SignalClient.SignedPreKeyRecord>;
+export declare abstract class SignedPreKeyStore implements Native.SignedPreKeyStore {
+    _saveSignedPreKey(id: number, record: Native.SignedPreKeyRecord): Promise<void>;
+    _getSignedPreKey(id: number): Promise<Native.SignedPreKeyRecord>;
     abstract saveSignedPreKey(id: number, record: SignedPreKeyRecord): Promise<void>;
     abstract getSignedPreKey(id: number): Promise<SignedPreKeyRecord>;
 }
-export declare abstract class SenderKeyStore implements SignalClient.SenderKeyStore {
-    _saveSenderKey(name: SignalClient.SenderKeyName, record: SignalClient.SenderKeyRecord): Promise<void>;
-    _getSenderKey(name: SignalClient.SenderKeyName): Promise<SignalClient.SenderKeyRecord | null>;
-    abstract saveSenderKey(name: SenderKeyName, record: SenderKeyRecord): Promise<void>;
-    abstract getSenderKey(name: SenderKeyName): Promise<SenderKeyRecord | null>;
+export declare abstract class SenderKeyStore implements Native.SenderKeyStore {
+    _saveSenderKey(sender: Native.ProtocolAddress, distributionId: Native.Uuid, record: Native.SenderKeyRecord): Promise<void>;
+    _getSenderKey(sender: Native.ProtocolAddress, distributionId: Native.Uuid): Promise<Native.SenderKeyRecord | null>;
+    abstract saveSenderKey(sender: ProtocolAddress, distributionId: Uuid, record: SenderKeyRecord): Promise<void>;
+    abstract getSenderKey(sender: ProtocolAddress, distributionId: Uuid): Promise<SenderKeyRecord | null>;
 }
-export declare function groupEncrypt(name: SenderKeyName, store: SenderKeyStore, message: Buffer): Promise<Buffer>;
-export declare function groupDecrypt(name: SenderKeyName, store: SenderKeyStore, message: Buffer): Promise<Buffer>;
+export declare function groupEncrypt(sender: ProtocolAddress, distributionId: Uuid, store: SenderKeyStore, message: Buffer): Promise<Buffer>;
+export declare function groupDecrypt(sender: ProtocolAddress, store: SenderKeyStore, message: Buffer): Promise<Buffer>;
 export declare class SealedSenderDecryptionResult {
-    readonly _nativeHandle: SignalClient.SealedSenderDecryptionResult;
+    readonly _nativeHandle: Native.SealedSenderDecryptionResult;
     private constructor();
-    static _fromNativeHandle(nativeHandle: SignalClient.SealedSenderDecryptionResult): SealedSenderDecryptionResult;
+    static _fromNativeHandle(nativeHandle: Native.SealedSenderDecryptionResult): SealedSenderDecryptionResult;
     message(): Buffer;
     senderE164(): string | null;
     senderUuid(): string;
     deviceId(): number;
 }
 export declare class CiphertextMessage {
-    readonly _nativeHandle: SignalClient.CiphertextMessage;
+    readonly _nativeHandle: Native.CiphertextMessage;
     private constructor();
-    static _fromNativeHandle(nativeHandle: SignalClient.CiphertextMessage): CiphertextMessage;
+    static _fromNativeHandle(nativeHandle: Native.CiphertextMessage): CiphertextMessage;
     serialize(): Buffer;
     type(): number;
 }

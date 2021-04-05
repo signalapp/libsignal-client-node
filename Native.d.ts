@@ -5,6 +5,8 @@
 
 // WARNING: this file was automatically generated
 
+type Uuid = Buffer;
+
 export abstract class IdentityKeyStore {
   _getIdentityKey(): Promise<PrivateKey>;
   _getLocalRegistrationId(): Promise<number>;
@@ -30,8 +32,8 @@ export abstract class SignedPreKeyStore {
 }
 
 export abstract class SenderKeyStore {
-  _saveSenderKey(name: SenderKeyName, record: SenderKeyRecord): Promise<void>;
-  _getSenderKey(name: SenderKeyName): Promise<SenderKeyRecord | null>;
+  _saveSenderKey(sender: ProtocolAddress, distributionId: Uuid, record: SenderKeyRecord): Promise<void>;
+  _getSenderKey(sender: ProtocolAddress, distributionId: Uuid): Promise<SenderKeyRecord | null>;
 }
 
 interface Wrapper<T> {
@@ -39,7 +41,7 @@ interface Wrapper<T> {
 }
 
 
-export const enum LogLevel { Error, Warn, Info, Debug, Trace }
+export const enum LogLevel { Error = 1, Warn, Info, Debug, Trace }
 export function Aes256GcmSiv_Decrypt(aesGcmSiv: Wrapper<Aes256GcmSiv>, ctext: Buffer, nonce: Buffer, associatedData: Buffer): Buffer;
 export function Aes256GcmSiv_Encrypt(aesGcmSiv: Wrapper<Aes256GcmSiv>, ptext: Buffer, nonce: Buffer, associatedData: Buffer): Buffer;
 export function Aes256GcmSiv_New(key: Buffer): Aes256GcmSiv;
@@ -48,8 +50,8 @@ export function CiphertextMessage_Type(msg: Wrapper<CiphertextMessage>): number;
 export function Fingerprint_DisplayString(obj: Wrapper<Fingerprint>): string;
 export function Fingerprint_New(iterations: number, version: number, localIdentifier: Buffer, localKey: Wrapper<PublicKey>, remoteIdentifier: Buffer, remoteKey: Wrapper<PublicKey>): Fingerprint;
 export function Fingerprint_ScannableEncoding(obj: Wrapper<Fingerprint>): Buffer;
-export function GroupCipher_Decrypt(senderKeyName: Wrapper<SenderKeyName>, message: Buffer, store: SenderKeyStore): Promise<Buffer>;
-export function GroupCipher_Encrypt(senderKeyName: Wrapper<SenderKeyName>, message: Buffer, store: SenderKeyStore): Promise<Buffer>;
+export function GroupCipher_DecryptMessage(sender: Wrapper<ProtocolAddress>, message: Buffer, store: SenderKeyStore, ctx: null): Promise<Buffer>;
+export function GroupCipher_EncryptMessage(sender: Wrapper<ProtocolAddress>, distributionId: Uuid, message: Buffer, store: SenderKeyStore, ctx: null): Promise<CiphertextMessage>;
 export function HKDF_DeriveSecrets(outputLength: number, version: number, ikm: Buffer, label: Buffer, salt: Buffer | null): Buffer;
 export function IdentityKeyPair_Serialize(publicKey: Wrapper<PublicKey>, privateKey: Wrapper<PrivateKey>): Buffer;
 export function PreKeyBundle_GetDeviceId(obj: Wrapper<PreKeyBundle>): number;
@@ -94,8 +96,10 @@ export function SealedSenderDecryptionResult_GetSenderE164(obj: Wrapper<SealedSe
 export function SealedSenderDecryptionResult_GetSenderUuid(obj: Wrapper<SealedSenderDecryptionResult>): string;
 export function SealedSenderDecryptionResult_Message(obj: Wrapper<SealedSenderDecryptionResult>): Buffer;
 export function SealedSender_DecryptMessage(message: Buffer, trustRoot: Wrapper<PublicKey>, timestamp: number, localE164: string | null, localUuid: string, localDeviceId: number, sessionStore: SessionStore, identityStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore): Promise<SealedSenderDecryptionResult | null>;
-export function SealedSender_DecryptToUsmc(ctext: Buffer, identityStore: IdentityKeyStore): Promise<UnidentifiedSenderMessageContent>;
-export function SealedSender_EncryptMessage(destination: Wrapper<ProtocolAddress>, senderCert: Wrapper<SenderCertificate>, ptext: Buffer, sessionStore: SessionStore, identityStore: IdentityKeyStore): Promise<Buffer>;
+export function SealedSender_DecryptToUsmc(ctext: Buffer, identityStore: IdentityKeyStore, ctx: null): Promise<UnidentifiedSenderMessageContent>;
+export function SealedSender_Encrypt(destination: Wrapper<ProtocolAddress>, content: Wrapper<UnidentifiedSenderMessageContent>, identityKeyStore: IdentityKeyStore, ctx: null): Promise<Buffer>;
+export function SealedSender_MultiRecipientEncrypt(recipients: Wrapper<ProtocolAddress>[], content: Wrapper<UnidentifiedSenderMessageContent>, identityKeyStore: IdentityKeyStore, ctx: null): Promise<Buffer>;
+export function SealedSender_MultiRecipientMessageForSingleRecipient(encodedMultiRecipientMessage: Buffer): Buffer;
 export function SenderCertificate_Deserialize(buffer: Buffer): SenderCertificate;
 export function SenderCertificate_GetCertificate(obj: Wrapper<SenderCertificate>): Buffer;
 export function SenderCertificate_GetDeviceId(obj: Wrapper<SenderCertificate>): number;
@@ -108,25 +112,23 @@ export function SenderCertificate_GetServerCertificate(cert: Wrapper<SenderCerti
 export function SenderCertificate_GetSignature(obj: Wrapper<SenderCertificate>): Buffer;
 export function SenderCertificate_New(senderUuid: string, senderE164: string | null, senderDeviceId: number, senderKey: Wrapper<PublicKey>, expiration: number, signerCert: Wrapper<ServerCertificate>, signerKey: Wrapper<PrivateKey>): SenderCertificate;
 export function SenderCertificate_Validate(cert: Wrapper<SenderCertificate>, key: Wrapper<PublicKey>, time: number): boolean;
-export function SenderKeyDistributionMessage_Create(senderKeyName: Wrapper<SenderKeyName>, store: SenderKeyStore): Promise<SenderKeyDistributionMessage>;
+export function SenderKeyDistributionMessage_Create(sender: Wrapper<ProtocolAddress>, distributionId: Uuid, store: SenderKeyStore, ctx: null): Promise<SenderKeyDistributionMessage>;
 export function SenderKeyDistributionMessage_Deserialize(buffer: Buffer): SenderKeyDistributionMessage;
+export function SenderKeyDistributionMessage_GetChainId(obj: Wrapper<SenderKeyDistributionMessage>): number;
 export function SenderKeyDistributionMessage_GetChainKey(obj: Wrapper<SenderKeyDistributionMessage>): Buffer;
-export function SenderKeyDistributionMessage_GetId(obj: Wrapper<SenderKeyDistributionMessage>): number;
+export function SenderKeyDistributionMessage_GetDistributionId(obj: Wrapper<SenderKeyDistributionMessage>): Uuid;
 export function SenderKeyDistributionMessage_GetIteration(obj: Wrapper<SenderKeyDistributionMessage>): number;
-export function SenderKeyDistributionMessage_New(keyId: number, iteration: number, chainkey: Buffer, pk: Wrapper<PublicKey>): SenderKeyDistributionMessage;
-export function SenderKeyDistributionMessage_Process(senderKeyName: Wrapper<SenderKeyName>, senderKeyDistributionMessage: Wrapper<SenderKeyDistributionMessage>, store: SenderKeyStore): Promise<void>;
+export function SenderKeyDistributionMessage_New(distributionId: Uuid, chainId: number, iteration: number, chainkey: Buffer, pk: Wrapper<PublicKey>): SenderKeyDistributionMessage;
+export function SenderKeyDistributionMessage_Process(sender: Wrapper<ProtocolAddress>, senderKeyDistributionMessage: Wrapper<SenderKeyDistributionMessage>, store: SenderKeyStore, ctx: null): Promise<void>;
 export function SenderKeyDistributionMessage_Serialize(obj: Wrapper<SenderKeyDistributionMessage>): Buffer;
 export function SenderKeyMessage_Deserialize(buffer: Buffer): SenderKeyMessage;
+export function SenderKeyMessage_GetChainId(obj: Wrapper<SenderKeyMessage>): number;
 export function SenderKeyMessage_GetCipherText(obj: Wrapper<SenderKeyMessage>): Buffer;
+export function SenderKeyMessage_GetDistributionId(obj: Wrapper<SenderKeyMessage>): Uuid;
 export function SenderKeyMessage_GetIteration(obj: Wrapper<SenderKeyMessage>): number;
-export function SenderKeyMessage_GetKeyId(obj: Wrapper<SenderKeyMessage>): number;
-export function SenderKeyMessage_New(keyId: number, iteration: number, ciphertext: Buffer, pk: Wrapper<PrivateKey>): SenderKeyMessage;
+export function SenderKeyMessage_New(distributionId: Uuid, chainId: number, iteration: number, ciphertext: Buffer, pk: Wrapper<PrivateKey>): SenderKeyMessage;
 export function SenderKeyMessage_Serialize(obj: Wrapper<SenderKeyMessage>): Buffer;
 export function SenderKeyMessage_VerifySignature(skm: Wrapper<SenderKeyMessage>, pubkey: Wrapper<PublicKey>): boolean;
-export function SenderKeyName_GetGroupId(obj: Wrapper<SenderKeyName>): string;
-export function SenderKeyName_GetSenderDeviceId(skn: Wrapper<SenderKeyName>): number;
-export function SenderKeyName_GetSenderName(obj: Wrapper<SenderKeyName>): string;
-export function SenderKeyName_New(groupId: string, senderName: string, senderDeviceId: number): SenderKeyName;
 export function SenderKeyRecord_Deserialize(buffer: Buffer): SenderKeyRecord;
 export function SenderKeyRecord_New(): SenderKeyRecord;
 export function SenderKeyRecord_Serialize(obj: Wrapper<SenderKeyRecord>): Buffer;
@@ -137,10 +139,10 @@ export function ServerCertificate_GetKeyId(obj: Wrapper<ServerCertificate>): num
 export function ServerCertificate_GetSerialized(obj: Wrapper<ServerCertificate>): Buffer;
 export function ServerCertificate_GetSignature(obj: Wrapper<ServerCertificate>): Buffer;
 export function ServerCertificate_New(keyId: number, serverKey: Wrapper<PublicKey>, trustRoot: Wrapper<PrivateKey>): ServerCertificate;
-export function SessionBuilder_ProcessPreKeyBundle(bundle: Wrapper<PreKeyBundle>, protocolAddress: Wrapper<ProtocolAddress>, sessionStore: SessionStore, identityKeyStore: IdentityKeyStore): Promise<void>;
-export function SessionCipher_DecryptPreKeySignalMessage(message: Wrapper<PreKeySignalMessage>, protocolAddress: Wrapper<ProtocolAddress>, sessionStore: SessionStore, identityKeyStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore): Promise<Buffer>;
-export function SessionCipher_DecryptSignalMessage(message: Wrapper<SignalMessage>, protocolAddress: Wrapper<ProtocolAddress>, sessionStore: SessionStore, identityKeyStore: IdentityKeyStore): Promise<Buffer>;
-export function SessionCipher_EncryptMessage(ptext: Buffer, protocolAddress: Wrapper<ProtocolAddress>, sessionStore: SessionStore, identityKeyStore: IdentityKeyStore): Promise<CiphertextMessage>;
+export function SessionBuilder_ProcessPreKeyBundle(bundle: Wrapper<PreKeyBundle>, protocolAddress: Wrapper<ProtocolAddress>, sessionStore: SessionStore, identityKeyStore: IdentityKeyStore, ctx: null): Promise<void>;
+export function SessionCipher_DecryptPreKeySignalMessage(message: Wrapper<PreKeySignalMessage>, protocolAddress: Wrapper<ProtocolAddress>, sessionStore: SessionStore, identityKeyStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore, ctx: null): Promise<Buffer>;
+export function SessionCipher_DecryptSignalMessage(message: Wrapper<SignalMessage>, protocolAddress: Wrapper<ProtocolAddress>, sessionStore: SessionStore, identityKeyStore: IdentityKeyStore, ctx: null): Promise<Buffer>;
+export function SessionCipher_EncryptMessage(ptext: Buffer, protocolAddress: Wrapper<ProtocolAddress>, sessionStore: SessionStore, identityKeyStore: IdentityKeyStore, ctx: null): Promise<CiphertextMessage>;
 export function SessionRecord_ArchiveCurrentState(sessionRecord: Wrapper<SessionRecord>): void;
 export function SessionRecord_Deserialize(buffer: Buffer): SessionRecord;
 export function SessionRecord_GetLocalRegistrationId(obj: Wrapper<SessionRecord>): number;
@@ -163,9 +165,12 @@ export function SignedPreKeyRecord_GetTimestamp(obj: Wrapper<SignedPreKeyRecord>
 export function SignedPreKeyRecord_New(id: number, timestamp: number, pubKey: Wrapper<PublicKey>, privKey: Wrapper<PrivateKey>, signature: Buffer): SignedPreKeyRecord;
 export function SignedPreKeyRecord_Serialize(obj: Wrapper<SignedPreKeyRecord>): Buffer;
 export function UnidentifiedSenderMessageContent_Deserialize(buffer: Buffer): UnidentifiedSenderMessageContent;
+export function UnidentifiedSenderMessageContent_GetContentHint(m: Wrapper<UnidentifiedSenderMessageContent>): number;
 export function UnidentifiedSenderMessageContent_GetContents(obj: Wrapper<UnidentifiedSenderMessageContent>): Buffer;
+export function UnidentifiedSenderMessageContent_GetGroupId(m: Wrapper<UnidentifiedSenderMessageContent>): Buffer;
 export function UnidentifiedSenderMessageContent_GetMsgType(m: Wrapper<UnidentifiedSenderMessageContent>): number;
 export function UnidentifiedSenderMessageContent_GetSenderCert(m: Wrapper<UnidentifiedSenderMessageContent>): SenderCertificate;
+export function UnidentifiedSenderMessageContent_New(message: Wrapper<CiphertextMessage>, sender: Wrapper<SenderCertificate>, contentHint: number, groupId: Buffer | null): UnidentifiedSenderMessageContent;
 export function UnidentifiedSenderMessageContent_Serialize(obj: Wrapper<UnidentifiedSenderMessageContent>): Buffer;
 export function initLogger(maxLevel: LogLevel, callback: (level: LogLevel, target: string, file: string | null, line: number | null, message: string) => void): void
 interface Aes256GcmSiv { readonly __type: unique symbol; }
@@ -181,7 +186,6 @@ interface SealedSenderDecryptionResult { readonly __type: unique symbol; }
 interface SenderCertificate { readonly __type: unique symbol; }
 interface SenderKeyDistributionMessage { readonly __type: unique symbol; }
 interface SenderKeyMessage { readonly __type: unique symbol; }
-interface SenderKeyName { readonly __type: unique symbol; }
 interface SenderKeyRecord { readonly __type: unique symbol; }
 interface ServerCertificate { readonly __type: unique symbol; }
 interface SessionRecord { readonly __type: unique symbol; }

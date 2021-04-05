@@ -14,9 +14,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const os = require("os");
+const uuid = require("uuid");
 const bindings = require("bindings"); // eslint-disable-line @typescript-eslint/no-require-imports
-const SC = bindings('libsignal_client_' + os.platform() + '_' + process.arch);
-exports.initLogger = SC.initLogger, exports.LogLevel = SC.LogLevel;
+const NativeImpl = bindings('libsignal_client_' + os.platform() + '_' + process.arch);
+exports.initLogger = NativeImpl.initLogger, exports.LogLevel = NativeImpl.LogLevel;
 class HKDF {
     constructor(version) {
         this.version = version;
@@ -25,7 +26,7 @@ class HKDF {
         return new HKDF(version);
     }
     deriveSecrets(outputLength, keyMaterial, label, salt) {
-        return SC.HKDF_DeriveSecrets(outputLength, this.version, keyMaterial, label, salt);
+        return NativeImpl.HKDF_DeriveSecrets(outputLength, this.version, keyMaterial, label, salt);
     }
 }
 exports.HKDF = HKDF;
@@ -37,7 +38,7 @@ class ScannableFingerprint {
         return new ScannableFingerprint(scannable);
     }
     compare(other) {
-        return SC.ScannableFingerprint_Compare(this.scannable, other.scannable);
+        return NativeImpl.ScannableFingerprint_Compare(this.scannable, other.scannable);
     }
     toBuffer() {
         return this.scannable;
@@ -61,28 +62,28 @@ class Fingerprint {
         this._nativeHandle = nativeHandle;
     }
     static new(iterations, version, localIdentifier, localKey, remoteIdentifier, remoteKey) {
-        return new Fingerprint(SC.Fingerprint_New(iterations, version, localIdentifier, localKey, remoteIdentifier, remoteKey));
+        return new Fingerprint(NativeImpl.Fingerprint_New(iterations, version, localIdentifier, localKey, remoteIdentifier, remoteKey));
     }
     displayableFingerprint() {
-        return DisplayableFingerprint._fromString(SC.Fingerprint_DisplayString(this));
+        return DisplayableFingerprint._fromString(NativeImpl.Fingerprint_DisplayString(this));
     }
     scannableFingerprint() {
-        return ScannableFingerprint._fromBuffer(SC.Fingerprint_ScannableEncoding(this));
+        return ScannableFingerprint._fromBuffer(NativeImpl.Fingerprint_ScannableEncoding(this));
     }
 }
 exports.Fingerprint = Fingerprint;
 class Aes256GcmSiv {
     constructor(key) {
-        this._nativeHandle = SC.Aes256GcmSiv_New(key);
+        this._nativeHandle = NativeImpl.Aes256GcmSiv_New(key);
     }
     static new(key) {
         return new Aes256GcmSiv(key);
     }
     encrypt(message, nonce, associated_data) {
-        return SC.Aes256GcmSiv_Encrypt(this, message, nonce, associated_data);
+        return NativeImpl.Aes256GcmSiv_Encrypt(this, message, nonce, associated_data);
     }
     decrypt(message, nonce, associated_data) {
-        return SC.Aes256GcmSiv_Decrypt(this, message, nonce, associated_data);
+        return NativeImpl.Aes256GcmSiv_Decrypt(this, message, nonce, associated_data);
     }
 }
 exports.Aes256GcmSiv = Aes256GcmSiv;
@@ -94,13 +95,13 @@ class ProtocolAddress {
         return new ProtocolAddress(handle);
     }
     static new(name, deviceId) {
-        return new ProtocolAddress(SC.ProtocolAddress_New(name, deviceId));
+        return new ProtocolAddress(NativeImpl.ProtocolAddress_New(name, deviceId));
     }
     name() {
-        return SC.ProtocolAddress_Name(this);
+        return NativeImpl.ProtocolAddress_Name(this);
     }
     deviceId() {
-        return SC.ProtocolAddress_DeviceId(this);
+        return NativeImpl.ProtocolAddress_DeviceId(this);
     }
 }
 exports.ProtocolAddress = ProtocolAddress;
@@ -112,20 +113,20 @@ class PublicKey {
         return new PublicKey(handle);
     }
     static deserialize(buf) {
-        return new PublicKey(SC.PublicKey_Deserialize(buf));
+        return new PublicKey(NativeImpl.PublicKey_Deserialize(buf));
     }
     /// Returns -1, 0, or 1
     compare(other) {
-        return SC.PublicKey_Compare(this, other);
+        return NativeImpl.PublicKey_Compare(this, other);
     }
     serialize() {
-        return SC.PublicKey_Serialize(this);
+        return NativeImpl.PublicKey_Serialize(this);
     }
     getPublicKeyBytes() {
-        return SC.PublicKey_GetPublicKeyBytes(this);
+        return NativeImpl.PublicKey_GetPublicKeyBytes(this);
     }
     verify(msg, sig) {
-        return SC.PublicKey_Verify(this, msg, sig);
+        return NativeImpl.PublicKey_Verify(this, msg, sig);
     }
 }
 exports.PublicKey = PublicKey;
@@ -137,22 +138,22 @@ class PrivateKey {
         return new PrivateKey(handle);
     }
     static generate() {
-        return new PrivateKey(SC.PrivateKey_Generate());
+        return new PrivateKey(NativeImpl.PrivateKey_Generate());
     }
     static deserialize(buf) {
-        return new PrivateKey(SC.PrivateKey_Deserialize(buf));
+        return new PrivateKey(NativeImpl.PrivateKey_Deserialize(buf));
     }
     serialize() {
-        return SC.PrivateKey_Serialize(this);
+        return NativeImpl.PrivateKey_Serialize(this);
     }
     sign(msg) {
-        return SC.PrivateKey_Sign(this, msg);
+        return NativeImpl.PrivateKey_Sign(this, msg);
     }
     agree(other_key) {
-        return SC.PrivateKey_Agree(this, other_key);
+        return NativeImpl.PrivateKey_Agree(this, other_key);
     }
     getPublicKey() {
-        return PublicKey._fromNativeHandle(SC.PrivateKey_GetPublicKey(this));
+        return PublicKey._fromNativeHandle(NativeImpl.PrivateKey_GetPublicKey(this));
     }
 }
 exports.PrivateKey = PrivateKey;
@@ -165,7 +166,7 @@ class IdentityKeyPair {
         return new IdentityKeyPair(publicKey, privateKey);
     }
     serialize() {
-        return SC.IdentityKeyPair_Serialize(this.publicKey, this.privateKey);
+        return NativeImpl.IdentityKeyPair_Serialize(this.publicKey, this.privateKey);
     }
 }
 exports.IdentityKeyPair = IdentityKeyPair;
@@ -174,21 +175,21 @@ class PreKeyBundle {
         this._nativeHandle = handle;
     }
     static new(registration_id, device_id, prekey_id, prekey, signed_prekey_id, signed_prekey, signed_prekey_signature, identity_key) {
-        return new PreKeyBundle(SC.PreKeyBundle_New(registration_id, device_id, prekey_id, prekey != null ? prekey : null, 
+        return new PreKeyBundle(NativeImpl.PreKeyBundle_New(registration_id, device_id, prekey_id, prekey != null ? prekey : null, 
         //prekey?,
         signed_prekey_id, signed_prekey, signed_prekey_signature, identity_key));
     }
     deviceId() {
-        return SC.PreKeyBundle_GetDeviceId(this);
+        return NativeImpl.PreKeyBundle_GetDeviceId(this);
     }
     identityKey() {
-        return PublicKey._fromNativeHandle(SC.PreKeyBundle_GetIdentityKey(this));
+        return PublicKey._fromNativeHandle(NativeImpl.PreKeyBundle_GetIdentityKey(this));
     }
     preKeyId() {
-        return SC.PreKeyBundle_GetPreKeyId(this);
+        return NativeImpl.PreKeyBundle_GetPreKeyId(this);
     }
     preKeyPublic() {
-        const handle = SC.PreKeyBundle_GetPreKeyPublic(this);
+        const handle = NativeImpl.PreKeyBundle_GetPreKeyPublic(this);
         if (handle == null) {
             return null;
         }
@@ -197,16 +198,16 @@ class PreKeyBundle {
         }
     }
     registrationId() {
-        return SC.PreKeyBundle_GetRegistrationId(this);
+        return NativeImpl.PreKeyBundle_GetRegistrationId(this);
     }
     signedPreKeyId() {
-        return SC.PreKeyBundle_GetSignedPreKeyId(this);
+        return NativeImpl.PreKeyBundle_GetSignedPreKeyId(this);
     }
     signedPreKeyPublic() {
-        return PublicKey._fromNativeHandle(SC.PreKeyBundle_GetSignedPreKeyPublic(this));
+        return PublicKey._fromNativeHandle(NativeImpl.PreKeyBundle_GetSignedPreKeyPublic(this));
     }
     signedPreKeySignature() {
-        return SC.PreKeyBundle_GetSignedPreKeySignature(this);
+        return NativeImpl.PreKeyBundle_GetSignedPreKeySignature(this);
     }
 }
 exports.PreKeyBundle = PreKeyBundle;
@@ -218,22 +219,22 @@ class PreKeyRecord {
         return new PreKeyRecord(nativeHandle);
     }
     static new(id, pubKey, privKey) {
-        return new PreKeyRecord(SC.PreKeyRecord_New(id, pubKey, privKey));
+        return new PreKeyRecord(NativeImpl.PreKeyRecord_New(id, pubKey, privKey));
     }
     static deserialize(buffer) {
-        return new PreKeyRecord(SC.PreKeyRecord_Deserialize(buffer));
+        return new PreKeyRecord(NativeImpl.PreKeyRecord_Deserialize(buffer));
     }
     id() {
-        return SC.PreKeyRecord_GetId(this);
+        return NativeImpl.PreKeyRecord_GetId(this);
     }
     privateKey() {
-        return PrivateKey._fromNativeHandle(SC.PreKeyRecord_GetPrivateKey(this));
+        return PrivateKey._fromNativeHandle(NativeImpl.PreKeyRecord_GetPrivateKey(this));
     }
     publicKey() {
-        return PublicKey._fromNativeHandle(SC.PreKeyRecord_GetPublicKey(this));
+        return PublicKey._fromNativeHandle(NativeImpl.PreKeyRecord_GetPublicKey(this));
     }
     serialize() {
-        return SC.PreKeyRecord_Serialize(this);
+        return NativeImpl.PreKeyRecord_Serialize(this);
     }
 }
 exports.PreKeyRecord = PreKeyRecord;
@@ -245,28 +246,28 @@ class SignedPreKeyRecord {
         return new SignedPreKeyRecord(nativeHandle);
     }
     static new(id, timestamp, pubKey, privKey, signature) {
-        return new SignedPreKeyRecord(SC.SignedPreKeyRecord_New(id, timestamp, pubKey, privKey, signature));
+        return new SignedPreKeyRecord(NativeImpl.SignedPreKeyRecord_New(id, timestamp, pubKey, privKey, signature));
     }
     static deserialize(buffer) {
-        return new SignedPreKeyRecord(SC.SignedPreKeyRecord_Deserialize(buffer));
+        return new SignedPreKeyRecord(NativeImpl.SignedPreKeyRecord_Deserialize(buffer));
     }
     id() {
-        return SC.SignedPreKeyRecord_GetId(this);
+        return NativeImpl.SignedPreKeyRecord_GetId(this);
     }
     privateKey() {
-        return PrivateKey._fromNativeHandle(SC.SignedPreKeyRecord_GetPrivateKey(this));
+        return PrivateKey._fromNativeHandle(NativeImpl.SignedPreKeyRecord_GetPrivateKey(this));
     }
     publicKey() {
-        return PublicKey._fromNativeHandle(SC.SignedPreKeyRecord_GetPublicKey(this));
+        return PublicKey._fromNativeHandle(NativeImpl.SignedPreKeyRecord_GetPublicKey(this));
     }
     serialize() {
-        return SC.SignedPreKeyRecord_Serialize(this);
+        return NativeImpl.SignedPreKeyRecord_Serialize(this);
     }
     signature() {
-        return SC.SignedPreKeyRecord_GetSignature(this);
+        return NativeImpl.SignedPreKeyRecord_GetSignature(this);
     }
     timestamp() {
-        return SC.SignedPreKeyRecord_GetTimestamp(this);
+        return NativeImpl.SignedPreKeyRecord_GetTimestamp(this);
     }
 }
 exports.SignedPreKeyRecord = SignedPreKeyRecord;
@@ -275,25 +276,25 @@ class SignalMessage {
         this._nativeHandle = handle;
     }
     static new(messageVersion, macKey, senderRatchetKey, counter, previousCounter, ciphertext, senderIdentityKey, receiverIdentityKey) {
-        return new SignalMessage(SC.SignalMessage_New(messageVersion, macKey, senderRatchetKey, counter, previousCounter, ciphertext, senderIdentityKey, receiverIdentityKey));
+        return new SignalMessage(NativeImpl.SignalMessage_New(messageVersion, macKey, senderRatchetKey, counter, previousCounter, ciphertext, senderIdentityKey, receiverIdentityKey));
     }
     static deserialize(buffer) {
-        return new SignalMessage(SC.SignalMessage_Deserialize(buffer));
+        return new SignalMessage(NativeImpl.SignalMessage_Deserialize(buffer));
     }
     body() {
-        return SC.SignalMessage_GetBody(this);
+        return NativeImpl.SignalMessage_GetBody(this);
     }
     counter() {
-        return SC.SignalMessage_GetCounter(this);
+        return NativeImpl.SignalMessage_GetCounter(this);
     }
     messageVersion() {
-        return SC.SignalMessage_GetMessageVersion(this);
+        return NativeImpl.SignalMessage_GetMessageVersion(this);
     }
     serialize() {
-        return SC.SignalMessage_GetSerialized(this);
+        return NativeImpl.SignalMessage_GetSerialized(this);
     }
     verifyMac(senderIdentityKey, recevierIdentityKey, macKey) {
-        return SC.SignalMessage_VerifyMac(this, senderIdentityKey, recevierIdentityKey, macKey);
+        return NativeImpl.SignalMessage_VerifyMac(this, senderIdentityKey, recevierIdentityKey, macKey);
     }
 }
 exports.SignalMessage = SignalMessage;
@@ -302,25 +303,25 @@ class PreKeySignalMessage {
         this._nativeHandle = handle;
     }
     static new(messageVersion, registrationId, preKeyId, signedPreKeyId, baseKey, identityKey, signalMessage) {
-        return new PreKeySignalMessage(SC.PreKeySignalMessage_New(messageVersion, registrationId, preKeyId, signedPreKeyId, baseKey, identityKey, signalMessage));
+        return new PreKeySignalMessage(NativeImpl.PreKeySignalMessage_New(messageVersion, registrationId, preKeyId, signedPreKeyId, baseKey, identityKey, signalMessage));
     }
     static deserialize(buffer) {
-        return new PreKeySignalMessage(SC.PreKeySignalMessage_Deserialize(buffer));
+        return new PreKeySignalMessage(NativeImpl.PreKeySignalMessage_Deserialize(buffer));
     }
     preKeyId() {
-        return SC.PreKeySignalMessage_GetPreKeyId(this);
+        return NativeImpl.PreKeySignalMessage_GetPreKeyId(this);
     }
     registrationId() {
-        return SC.PreKeySignalMessage_GetRegistrationId(this);
+        return NativeImpl.PreKeySignalMessage_GetRegistrationId(this);
     }
     signedPreKeyId() {
-        return SC.PreKeySignalMessage_GetSignedPreKeyId(this);
+        return NativeImpl.PreKeySignalMessage_GetSignedPreKeyId(this);
     }
     version() {
-        return SC.PreKeySignalMessage_GetVersion(this);
+        return NativeImpl.PreKeySignalMessage_GetVersion(this);
     }
     serialize() {
-        return SC.PreKeySignalMessage_Serialize(this);
+        return NativeImpl.PreKeySignalMessage_Serialize(this);
     }
 }
 exports.PreKeySignalMessage = PreKeySignalMessage;
@@ -332,46 +333,25 @@ class SessionRecord {
         return new SessionRecord(nativeHandle);
     }
     static deserialize(buffer) {
-        return new SessionRecord(SC.SessionRecord_Deserialize(buffer));
+        return new SessionRecord(NativeImpl.SessionRecord_Deserialize(buffer));
     }
     serialize() {
-        return SC.SessionRecord_Serialize(this);
+        return NativeImpl.SessionRecord_Serialize(this);
     }
     archiveCurrentState() {
-        SC.SessionRecord_ArchiveCurrentState(this);
+        NativeImpl.SessionRecord_ArchiveCurrentState(this);
     }
     localRegistrationId() {
-        return SC.SessionRecord_GetLocalRegistrationId(this);
+        return NativeImpl.SessionRecord_GetLocalRegistrationId(this);
     }
     remoteRegistrationId() {
-        return SC.SessionRecord_GetRemoteRegistrationId(this);
+        return NativeImpl.SessionRecord_GetRemoteRegistrationId(this);
     }
     hasCurrentState() {
-        return SC.SessionRecord_HasCurrentState(this);
+        return NativeImpl.SessionRecord_HasCurrentState(this);
     }
 }
 exports.SessionRecord = SessionRecord;
-class SenderKeyName {
-    constructor(nativeHandle) {
-        this._nativeHandle = nativeHandle;
-    }
-    static _fromNativeHandle(nativeHandle) {
-        return new SenderKeyName(nativeHandle);
-    }
-    static new(groupId, senderName, senderDeviceId) {
-        return new SenderKeyName(SC.SenderKeyName_New(groupId, senderName, senderDeviceId));
-    }
-    groupId() {
-        return SC.SenderKeyName_GetGroupId(this);
-    }
-    senderName() {
-        return SC.SenderKeyName_GetSenderName(this);
-    }
-    senderDeviceId() {
-        return SC.SenderKeyName_GetSenderDeviceId(this);
-    }
-}
-exports.SenderKeyName = SenderKeyName;
 class ServerCertificate {
     constructor(nativeHandle) {
         this._nativeHandle = nativeHandle;
@@ -380,25 +360,25 @@ class ServerCertificate {
         return new ServerCertificate(nativeHandle);
     }
     static new(keyId, serverKey, trustRoot) {
-        return new ServerCertificate(SC.ServerCertificate_New(keyId, serverKey, trustRoot));
+        return new ServerCertificate(NativeImpl.ServerCertificate_New(keyId, serverKey, trustRoot));
     }
     static deserialize(buffer) {
-        return new ServerCertificate(SC.ServerCertificate_Deserialize(buffer));
+        return new ServerCertificate(NativeImpl.ServerCertificate_Deserialize(buffer));
     }
     certificateData() {
-        return SC.ServerCertificate_GetCertificate(this);
+        return NativeImpl.ServerCertificate_GetCertificate(this);
     }
     key() {
-        return PublicKey._fromNativeHandle(SC.ServerCertificate_GetKey(this));
+        return PublicKey._fromNativeHandle(NativeImpl.ServerCertificate_GetKey(this));
     }
     keyId() {
-        return SC.ServerCertificate_GetKeyId(this);
+        return NativeImpl.ServerCertificate_GetKeyId(this);
     }
     serialize() {
-        return SC.ServerCertificate_GetSerialized(this);
+        return NativeImpl.ServerCertificate_GetSerialized(this);
     }
     signature() {
-        return SC.ServerCertificate_GetSignature(this);
+        return NativeImpl.ServerCertificate_GetSignature(this);
     }
 }
 exports.ServerCertificate = ServerCertificate;
@@ -410,13 +390,13 @@ class SenderKeyRecord {
         return new SenderKeyRecord(nativeHandle);
     }
     static new() {
-        return new SenderKeyRecord(SC.SenderKeyRecord_New());
+        return new SenderKeyRecord(NativeImpl.SenderKeyRecord_New());
     }
     static deserialize(buffer) {
-        return new SenderKeyRecord(SC.SenderKeyRecord_Deserialize(buffer));
+        return new SenderKeyRecord(NativeImpl.SenderKeyRecord_Deserialize(buffer));
     }
     serialize() {
-        return SC.SenderKeyRecord_Serialize(this);
+        return NativeImpl.SenderKeyRecord_Serialize(this);
     }
 }
 exports.SenderKeyRecord = SenderKeyRecord;
@@ -428,40 +408,40 @@ class SenderCertificate {
         return new SenderCertificate(nativeHandle);
     }
     static new(senderUuid, senderE164, senderDeviceId, senderKey, expiration, signerCert, signerKey) {
-        return new SenderCertificate(SC.SenderCertificate_New(senderUuid, senderE164, senderDeviceId, senderKey, expiration, signerCert, signerKey));
+        return new SenderCertificate(NativeImpl.SenderCertificate_New(senderUuid, senderE164, senderDeviceId, senderKey, expiration, signerCert, signerKey));
     }
     static deserialize(buffer) {
-        return new SenderCertificate(SC.SenderCertificate_Deserialize(buffer));
+        return new SenderCertificate(NativeImpl.SenderCertificate_Deserialize(buffer));
     }
     serialize() {
-        return SC.SenderCertificate_GetSerialized(this);
+        return NativeImpl.SenderCertificate_GetSerialized(this);
     }
     certificate() {
-        return SC.SenderCertificate_GetCertificate(this);
+        return NativeImpl.SenderCertificate_GetCertificate(this);
     }
     expiration() {
-        return SC.SenderCertificate_GetExpiration(this);
+        return NativeImpl.SenderCertificate_GetExpiration(this);
     }
     key() {
-        return PublicKey._fromNativeHandle(SC.SenderCertificate_GetKey(this));
+        return PublicKey._fromNativeHandle(NativeImpl.SenderCertificate_GetKey(this));
     }
     senderE164() {
-        return SC.SenderCertificate_GetSenderE164(this);
+        return NativeImpl.SenderCertificate_GetSenderE164(this);
     }
     senderUuid() {
-        return SC.SenderCertificate_GetSenderUuid(this);
+        return NativeImpl.SenderCertificate_GetSenderUuid(this);
     }
     senderDeviceId() {
-        return SC.SenderCertificate_GetDeviceId(this);
+        return NativeImpl.SenderCertificate_GetDeviceId(this);
     }
     serverCertificate() {
-        return ServerCertificate._fromNativeHandle(SC.SenderCertificate_GetServerCertificate(this));
+        return ServerCertificate._fromNativeHandle(NativeImpl.SenderCertificate_GetServerCertificate(this));
     }
     signature() {
-        return SC.SenderCertificate_GetSignature(this);
+        return NativeImpl.SenderCertificate_GetSignature(this);
     }
     validate(trustRoot, time) {
-        return SC.SenderCertificate_Validate(this, trustRoot, time);
+        return NativeImpl.SenderCertificate_Validate(this, trustRoot, time);
     }
 }
 exports.SenderCertificate = SenderCertificate;
@@ -469,35 +449,38 @@ class SenderKeyDistributionMessage {
     constructor(nativeHandle) {
         this._nativeHandle = nativeHandle;
     }
-    static create(name, store) {
+    static create(sender, distributionId, store) {
         return __awaiter(this, void 0, void 0, function* () {
-            const handle = yield SC.SenderKeyDistributionMessage_Create(name, store);
+            const handle = yield NativeImpl.SenderKeyDistributionMessage_Create(sender, Buffer.from(uuid.parse(distributionId)), store, null);
             return new SenderKeyDistributionMessage(handle);
         });
     }
-    static new(keyId, iteration, chainKey, pk) {
-        return new SenderKeyDistributionMessage(SC.SenderKeyDistributionMessage_New(keyId, iteration, chainKey, pk));
+    static new(distributionId, chainId, iteration, chainKey, pk) {
+        return new SenderKeyDistributionMessage(NativeImpl.SenderKeyDistributionMessage_New(Buffer.from(uuid.parse(distributionId)), chainId, iteration, chainKey, pk));
     }
     static deserialize(buffer) {
-        return new SenderKeyDistributionMessage(SC.SenderKeyDistributionMessage_Deserialize(buffer));
+        return new SenderKeyDistributionMessage(NativeImpl.SenderKeyDistributionMessage_Deserialize(buffer));
     }
     serialize() {
-        return SC.SenderKeyDistributionMessage_Serialize(this);
+        return NativeImpl.SenderKeyDistributionMessage_Serialize(this);
     }
     chainKey() {
-        return SC.SenderKeyDistributionMessage_GetChainKey(this);
+        return NativeImpl.SenderKeyDistributionMessage_GetChainKey(this);
     }
     iteration() {
-        return SC.SenderKeyDistributionMessage_GetIteration(this);
+        return NativeImpl.SenderKeyDistributionMessage_GetIteration(this);
     }
-    id() {
-        return SC.SenderKeyDistributionMessage_GetId(this);
+    chainId() {
+        return NativeImpl.SenderKeyDistributionMessage_GetChainId(this);
+    }
+    distributionId() {
+        return uuid.stringify(NativeImpl.SenderKeyDistributionMessage_GetDistributionId(this));
     }
 }
 exports.SenderKeyDistributionMessage = SenderKeyDistributionMessage;
-function processSenderKeyDistributionMessage(name, message, store) {
+function processSenderKeyDistributionMessage(sender, message, store) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield SC.SenderKeyDistributionMessage_Process(name, message, store);
+        yield NativeImpl.SenderKeyDistributionMessage_Process(sender, message, store, null);
     });
 }
 exports.processSenderKeyDistributionMessage = processSenderKeyDistributionMessage;
@@ -505,26 +488,29 @@ class SenderKeyMessage {
     constructor(nativeHandle) {
         this._nativeHandle = nativeHandle;
     }
-    static new(keyId, iteration, ciphertext, pk) {
-        return new SenderKeyMessage(SC.SenderKeyMessage_New(keyId, iteration, ciphertext, pk));
+    static new(distributionId, chainId, iteration, ciphertext, pk) {
+        return new SenderKeyMessage(NativeImpl.SenderKeyMessage_New(Buffer.from(uuid.parse(distributionId)), chainId, iteration, ciphertext, pk));
     }
     static deserialize(buffer) {
-        return new SenderKeyMessage(SC.SenderKeyMessage_Deserialize(buffer));
+        return new SenderKeyMessage(NativeImpl.SenderKeyMessage_Deserialize(buffer));
     }
     serialize() {
-        return SC.SenderKeyMessage_Serialize(this);
+        return NativeImpl.SenderKeyMessage_Serialize(this);
     }
     ciphertext() {
-        return SC.SenderKeyMessage_GetCipherText(this);
+        return NativeImpl.SenderKeyMessage_GetCipherText(this);
     }
     iteration() {
-        return SC.SenderKeyMessage_GetIteration(this);
+        return NativeImpl.SenderKeyMessage_GetIteration(this);
     }
-    keyId() {
-        return SC.SenderKeyMessage_GetKeyId(this);
+    chainId() {
+        return NativeImpl.SenderKeyMessage_GetChainId(this);
+    }
+    distributionId() {
+        return uuid.stringify(NativeImpl.SenderKeyMessage_GetDistributionId(this));
     }
     verifySignature(key) {
-        return SC.SenderKeyMessage_VerifySignature(this, key);
+        return NativeImpl.SenderKeyMessage_VerifySignature(this, key);
     }
 }
 exports.SenderKeyMessage = SenderKeyMessage;
@@ -536,19 +522,19 @@ class UnidentifiedSenderMessageContent {
         return new UnidentifiedSenderMessageContent(nativeHandle);
     }
     static deserialize(buffer) {
-        return new UnidentifiedSenderMessageContent(SC.UnidentifiedSenderMessageContent_Deserialize(buffer));
+        return new UnidentifiedSenderMessageContent(NativeImpl.UnidentifiedSenderMessageContent_Deserialize(buffer));
     }
     serialize() {
-        return SC.UnidentifiedSenderMessageContent_Serialize(this);
+        return NativeImpl.UnidentifiedSenderMessageContent_Serialize(this);
     }
     contents() {
-        return SC.UnidentifiedSenderMessageContent_GetContents(this);
+        return NativeImpl.UnidentifiedSenderMessageContent_GetContents(this);
     }
     msgType() {
-        return SC.UnidentifiedSenderMessageContent_GetMsgType(this);
+        return NativeImpl.UnidentifiedSenderMessageContent_GetMsgType(this);
     }
     senderCertificate() {
-        return SenderCertificate._fromNativeHandle(SC.UnidentifiedSenderMessageContent_GetSenderCert(this));
+        return SenderCertificate._fromNativeHandle(NativeImpl.UnidentifiedSenderMessageContent_GetSenderCert(this));
     }
 }
 exports.UnidentifiedSenderMessageContent = UnidentifiedSenderMessageContent;
@@ -641,14 +627,14 @@ class SignedPreKeyStore {
 }
 exports.SignedPreKeyStore = SignedPreKeyStore;
 class SenderKeyStore {
-    _saveSenderKey(name, record) {
+    _saveSenderKey(sender, distributionId, record) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.saveSenderKey(SenderKeyName._fromNativeHandle(name), SenderKeyRecord._fromNativeHandle(record));
+            return this.saveSenderKey(ProtocolAddress._fromNativeHandle(sender), uuid.stringify(distributionId), SenderKeyRecord._fromNativeHandle(record));
         });
     }
-    _getSenderKey(name) {
+    _getSenderKey(sender, distributionId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const skr = yield this.getSenderKey(SenderKeyName._fromNativeHandle(name));
+            const skr = yield this.getSenderKey(ProtocolAddress._fromNativeHandle(sender), uuid.stringify(distributionId));
             if (skr == null) {
                 return null;
             }
@@ -659,15 +645,15 @@ class SenderKeyStore {
     }
 }
 exports.SenderKeyStore = SenderKeyStore;
-function groupEncrypt(name, store, message) {
+function groupEncrypt(sender, distributionId, store, message) {
     return __awaiter(this, void 0, void 0, function* () {
-        return SC.GroupCipher_Encrypt(name, message, store);
+        return NativeImpl.GroupCipher_EncryptMessage(sender, Buffer.from(uuid.parse(distributionId)), message, store, null);
     });
 }
 exports.groupEncrypt = groupEncrypt;
-function groupDecrypt(name, store, message) {
+function groupDecrypt(sender, store, message) {
     return __awaiter(this, void 0, void 0, function* () {
-        return SC.GroupCipher_Decrypt(name, message, store);
+        return NativeImpl.GroupCipher_DecryptMessage(sender, message, store, null);
     });
 }
 exports.groupDecrypt = groupDecrypt;
@@ -679,16 +665,16 @@ class SealedSenderDecryptionResult {
         return new SealedSenderDecryptionResult(nativeHandle);
     }
     message() {
-        return SC.SealedSenderDecryptionResult_Message(this);
+        return NativeImpl.SealedSenderDecryptionResult_Message(this);
     }
     senderE164() {
-        return SC.SealedSenderDecryptionResult_GetSenderE164(this);
+        return NativeImpl.SealedSenderDecryptionResult_GetSenderE164(this);
     }
     senderUuid() {
-        return SC.SealedSenderDecryptionResult_GetSenderUuid(this);
+        return NativeImpl.SealedSenderDecryptionResult_GetSenderUuid(this);
     }
     deviceId() {
-        return SC.SealedSenderDecryptionResult_GetDeviceId(this);
+        return NativeImpl.SealedSenderDecryptionResult_GetDeviceId(this);
     }
 }
 exports.SealedSenderDecryptionResult = SealedSenderDecryptionResult;
@@ -700,38 +686,38 @@ class CiphertextMessage {
         return new CiphertextMessage(nativeHandle);
     }
     serialize() {
-        return SC.CiphertextMessage_Serialize(this);
+        return NativeImpl.CiphertextMessage_Serialize(this);
     }
     type() {
-        return SC.CiphertextMessage_Type(this);
+        return NativeImpl.CiphertextMessage_Type(this);
     }
 }
 exports.CiphertextMessage = CiphertextMessage;
 function processPreKeyBundle(bundle, address, sessionStore, identityStore) {
-    return SC.SessionBuilder_ProcessPreKeyBundle(bundle, address, sessionStore, identityStore);
+    return NativeImpl.SessionBuilder_ProcessPreKeyBundle(bundle, address, sessionStore, identityStore, null);
 }
 exports.processPreKeyBundle = processPreKeyBundle;
 function signalEncrypt(message, address, sessionStore, identityStore) {
     return __awaiter(this, void 0, void 0, function* () {
-        return CiphertextMessage._fromNativeHandle(yield SC.SessionCipher_EncryptMessage(message, address, sessionStore, identityStore));
+        return CiphertextMessage._fromNativeHandle(yield NativeImpl.SessionCipher_EncryptMessage(message, address, sessionStore, identityStore, null));
     });
 }
 exports.signalEncrypt = signalEncrypt;
 function signalDecrypt(message, address, sessionStore, identityStore) {
-    return SC.SessionCipher_DecryptSignalMessage(message, address, sessionStore, identityStore);
+    return NativeImpl.SessionCipher_DecryptSignalMessage(message, address, sessionStore, identityStore, null);
 }
 exports.signalDecrypt = signalDecrypt;
 function signalDecryptPreKey(message, address, sessionStore, identityStore, prekeyStore, signedPrekeyStore) {
-    return SC.SessionCipher_DecryptPreKeySignalMessage(message, address, sessionStore, identityStore, prekeyStore, signedPrekeyStore);
+    return NativeImpl.SessionCipher_DecryptPreKeySignalMessage(message, address, sessionStore, identityStore, prekeyStore, signedPrekeyStore, null);
 }
 exports.signalDecryptPreKey = signalDecryptPreKey;
 function sealedSenderEncryptMessage(message, address, senderCert, sessionStore, identityStore) {
-    return SC.SealedSender_EncryptMessage(address, senderCert, message, sessionStore, identityStore);
+    return NativeImpl.SealedSender_EncryptMessage(address, senderCert, message, sessionStore, identityStore, null);
 }
 exports.sealedSenderEncryptMessage = sealedSenderEncryptMessage;
 function sealedSenderDecryptMessage(message, trustRoot, timestamp, localE164, localUuid, localDeviceId, sessionStore, identityStore, prekeyStore, signedPrekeyStore) {
     return __awaiter(this, void 0, void 0, function* () {
-        const ssdr = yield SC.SealedSender_DecryptMessage(message, trustRoot, timestamp, localE164, localUuid, localDeviceId, sessionStore, identityStore, prekeyStore, signedPrekeyStore);
+        const ssdr = yield NativeImpl.SealedSender_DecryptMessage(message, trustRoot, timestamp, localE164, localUuid, localDeviceId, sessionStore, identityStore, prekeyStore, signedPrekeyStore);
         if (ssdr == null) {
             return null;
         }
@@ -741,7 +727,7 @@ function sealedSenderDecryptMessage(message, trustRoot, timestamp, localE164, lo
 exports.sealedSenderDecryptMessage = sealedSenderDecryptMessage;
 function sealedSenderDecryptToUsmc(message, identityStore) {
     return __awaiter(this, void 0, void 0, function* () {
-        const usmc = yield SC.SealedSender_DecryptToUsmc(message, identityStore);
+        const usmc = yield NativeImpl.SealedSender_DecryptToUsmc(message, identityStore, null);
         return UnidentifiedSenderMessageContent._fromNativeHandle(usmc);
     });
 }
