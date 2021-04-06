@@ -4,12 +4,16 @@ export declare const initLogger: typeof Native.initLogger, LogLevel: typeof Nati
 export declare const enum CiphertextMessageType {
     Whisper = 2,
     PreKey = 3,
-    SenderKey = 4,
-    SenderKeyDistribution = 5
+    SenderKey = 7
 }
 export declare const enum Direction {
     Sending = 0,
     Receiving = 1
+}
+export declare const enum ContentHint {
+    Default = 0,
+    Supplementary = 1,
+    Retry = 2
 }
 export declare type Uuid = string;
 export declare class HKDF {
@@ -217,11 +221,14 @@ export declare class UnidentifiedSenderMessageContent {
     readonly _nativeHandle: Native.UnidentifiedSenderMessageContent;
     private constructor();
     static _fromNativeHandle(nativeHandle: Native.UnidentifiedSenderMessageContent): UnidentifiedSenderMessageContent;
+    static new(message: CiphertextMessage, sender: SenderCertificate, contentHint: number, groupId: Buffer | null): UnidentifiedSenderMessageContent;
     static deserialize(buffer: Buffer): UnidentifiedSenderMessageContent;
     serialize(): Buffer;
     contents(): Buffer;
     msgType(): number;
     senderCertificate(): SenderCertificate;
+    contentHint(): number;
+    groupId(): Buffer | null;
 }
 export declare abstract class SessionStore implements Native.SessionStore {
     _saveSession(name: Native.ProtocolAddress, record: Native.SessionRecord): Promise<void>;
@@ -261,7 +268,7 @@ export declare abstract class SenderKeyStore implements Native.SenderKeyStore {
     abstract saveSenderKey(sender: ProtocolAddress, distributionId: Uuid, record: SenderKeyRecord): Promise<void>;
     abstract getSenderKey(sender: ProtocolAddress, distributionId: Uuid): Promise<SenderKeyRecord | null>;
 }
-export declare function groupEncrypt(sender: ProtocolAddress, distributionId: Uuid, store: SenderKeyStore, message: Buffer): Promise<Buffer>;
+export declare function groupEncrypt(sender: ProtocolAddress, distributionId: Uuid, store: SenderKeyStore, message: Buffer): Promise<CiphertextMessage>;
 export declare function groupDecrypt(sender: ProtocolAddress, store: SenderKeyStore, message: Buffer): Promise<Buffer>;
 export declare class SealedSenderDecryptionResult {
     readonly _nativeHandle: Native.SealedSenderDecryptionResult;
@@ -284,5 +291,8 @@ export declare function signalEncrypt(message: Buffer, address: ProtocolAddress,
 export declare function signalDecrypt(message: SignalMessage, address: ProtocolAddress, sessionStore: SessionStore, identityStore: IdentityKeyStore): Promise<Buffer>;
 export declare function signalDecryptPreKey(message: PreKeySignalMessage, address: ProtocolAddress, sessionStore: SessionStore, identityStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore): Promise<Buffer>;
 export declare function sealedSenderEncryptMessage(message: Buffer, address: ProtocolAddress, senderCert: SenderCertificate, sessionStore: SessionStore, identityStore: IdentityKeyStore): Promise<Buffer>;
+export declare function sealedSenderEncrypt(content: UnidentifiedSenderMessageContent, address: ProtocolAddress, identityStore: IdentityKeyStore): Promise<Buffer>;
+export declare function sealedSenderMultiRecipientEncrypt(content: UnidentifiedSenderMessageContent, recipients: ProtocolAddress[], identityStore: IdentityKeyStore): Promise<Buffer>;
+export declare function sealedSenderMultiRecipientMessageForSingleRecipient(message: Buffer): Buffer;
 export declare function sealedSenderDecryptMessage(message: Buffer, trustRoot: PublicKey, timestamp: number, localE164: string | null, localUuid: string, localDeviceId: number, sessionStore: SessionStore, identityStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore): Promise<SealedSenderDecryptionResult | null>;
 export declare function sealedSenderDecryptToUsmc(message: Buffer, identityStore: IdentityKeyStore): Promise<UnidentifiedSenderMessageContent>;

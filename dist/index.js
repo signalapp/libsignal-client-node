@@ -521,6 +521,9 @@ class UnidentifiedSenderMessageContent {
     static _fromNativeHandle(nativeHandle) {
         return new UnidentifiedSenderMessageContent(nativeHandle);
     }
+    static new(message, sender, contentHint, groupId) {
+        return new UnidentifiedSenderMessageContent(NativeImpl.UnidentifiedSenderMessageContent_New(message, sender, contentHint, groupId));
+    }
     static deserialize(buffer) {
         return new UnidentifiedSenderMessageContent(NativeImpl.UnidentifiedSenderMessageContent_Deserialize(buffer));
     }
@@ -535,6 +538,12 @@ class UnidentifiedSenderMessageContent {
     }
     senderCertificate() {
         return SenderCertificate._fromNativeHandle(NativeImpl.UnidentifiedSenderMessageContent_GetSenderCert(this));
+    }
+    contentHint() {
+        return NativeImpl.UnidentifiedSenderMessageContent_GetContentHint(this);
+    }
+    groupId() {
+        return NativeImpl.UnidentifiedSenderMessageContent_GetGroupId(this);
     }
 }
 exports.UnidentifiedSenderMessageContent = UnidentifiedSenderMessageContent;
@@ -647,7 +656,7 @@ class SenderKeyStore {
 exports.SenderKeyStore = SenderKeyStore;
 function groupEncrypt(sender, distributionId, store, message) {
     return __awaiter(this, void 0, void 0, function* () {
-        return NativeImpl.GroupCipher_EncryptMessage(sender, Buffer.from(uuid.parse(distributionId)), message, store, null);
+        return CiphertextMessage._fromNativeHandle(yield NativeImpl.GroupCipher_EncryptMessage(sender, Buffer.from(uuid.parse(distributionId)), message, store, null));
     });
 }
 exports.groupEncrypt = groupEncrypt;
@@ -712,9 +721,26 @@ function signalDecryptPreKey(message, address, sessionStore, identityStore, prek
 }
 exports.signalDecryptPreKey = signalDecryptPreKey;
 function sealedSenderEncryptMessage(message, address, senderCert, sessionStore, identityStore) {
-    return NativeImpl.SealedSender_EncryptMessage(address, senderCert, message, sessionStore, identityStore, null);
+    return __awaiter(this, void 0, void 0, function* () {
+        const ciphertext = yield signalEncrypt(message, address, sessionStore, identityStore);
+        const usmc = UnidentifiedSenderMessageContent.new(ciphertext, senderCert, 0 /* Default */, null);
+        return yield sealedSenderEncrypt(usmc, address, identityStore);
+    });
 }
 exports.sealedSenderEncryptMessage = sealedSenderEncryptMessage;
+function sealedSenderEncrypt(content, address, identityStore) {
+    return NativeImpl.SealedSender_Encrypt(address, content, identityStore, null);
+}
+exports.sealedSenderEncrypt = sealedSenderEncrypt;
+function sealedSenderMultiRecipientEncrypt(content, recipients, identityStore) {
+    return NativeImpl.SealedSender_MultiRecipientEncrypt(recipients, content, identityStore, null);
+}
+exports.sealedSenderMultiRecipientEncrypt = sealedSenderMultiRecipientEncrypt;
+// For testing only
+function sealedSenderMultiRecipientMessageForSingleRecipient(message) {
+    return NativeImpl.SealedSender_MultiRecipientMessageForSingleRecipient(message);
+}
+exports.sealedSenderMultiRecipientMessageForSingleRecipient = sealedSenderMultiRecipientMessageForSingleRecipient;
 function sealedSenderDecryptMessage(message, trustRoot, timestamp, localE164, localUuid, localDeviceId, sessionStore, identityStore, prekeyStore, signedPrekeyStore) {
     return __awaiter(this, void 0, void 0, function* () {
         const ssdr = yield NativeImpl.SealedSender_DecryptMessage(message, trustRoot, timestamp, localE164, localUuid, localDeviceId, sessionStore, identityStore, prekeyStore, signedPrekeyStore);
