@@ -12,12 +12,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const os = require("os");
 const uuid = require("uuid");
+const Errors = require("./Errors");
+__export(require("./Errors"));
 const bindings = require("bindings"); // eslint-disable-line @typescript-eslint/no-require-imports
 const NativeImpl = bindings('libsignal_client_' + os.platform() + '_' + process.arch);
 exports.initLogger = NativeImpl.initLogger, exports.LogLevel = NativeImpl.LogLevel;
+NativeImpl.registerErrors(Errors);
 class HKDF {
     constructor(version) {
         this.version = version;
@@ -744,9 +750,6 @@ exports.sealedSenderMultiRecipientMessageForSingleRecipient = sealedSenderMultiR
 function sealedSenderDecryptMessage(message, trustRoot, timestamp, localE164, localUuid, localDeviceId, sessionStore, identityStore, prekeyStore, signedPrekeyStore) {
     return __awaiter(this, void 0, void 0, function* () {
         const ssdr = yield NativeImpl.SealedSender_DecryptMessage(message, trustRoot, timestamp, localE164, localUuid, localDeviceId, sessionStore, identityStore, prekeyStore, signedPrekeyStore);
-        if (ssdr == null) {
-            return null;
-        }
         return SealedSenderDecryptionResult._fromNativeHandle(ssdr);
     });
 }

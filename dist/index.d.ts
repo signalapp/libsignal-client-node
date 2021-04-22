@@ -1,4 +1,5 @@
 /// <reference types="node" />
+export * from './Errors';
 import * as Native from './Native';
 export declare const initLogger: typeof Native.initLogger, LogLevel: typeof Native.LogLevel;
 export declare const enum CiphertextMessageType {
@@ -294,5 +295,5 @@ export declare function sealedSenderEncryptMessage(message: Buffer, address: Pro
 export declare function sealedSenderEncrypt(content: UnidentifiedSenderMessageContent, address: ProtocolAddress, identityStore: IdentityKeyStore): Promise<Buffer>;
 export declare function sealedSenderMultiRecipientEncrypt(content: UnidentifiedSenderMessageContent, recipients: ProtocolAddress[], identityStore: IdentityKeyStore): Promise<Buffer>;
 export declare function sealedSenderMultiRecipientMessageForSingleRecipient(message: Buffer): Buffer;
-export declare function sealedSenderDecryptMessage(message: Buffer, trustRoot: PublicKey, timestamp: number, localE164: string | null, localUuid: string, localDeviceId: number, sessionStore: SessionStore, identityStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore): Promise<SealedSenderDecryptionResult | null>;
+export declare function sealedSenderDecryptMessage(message: Buffer, trustRoot: PublicKey, timestamp: number, localE164: string | null, localUuid: string, localDeviceId: number, sessionStore: SessionStore, identityStore: IdentityKeyStore, prekeyStore: PreKeyStore, signedPrekeyStore: SignedPreKeyStore): Promise<SealedSenderDecryptionResult>;
 export declare function sealedSenderDecryptToUsmc(message: Buffer, identityStore: IdentityKeyStore): Promise<UnidentifiedSenderMessageContent>;
